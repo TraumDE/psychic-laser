@@ -5,4 +5,4 @@ export const ERRORS = {
   CONTEXT_NOT_FOUND: "2D context not found",
 } as const;
 
-export type errorKeys = keyof typeof ERRORS;
+export type ErrorKeys = keyof typeof ERRORS;
