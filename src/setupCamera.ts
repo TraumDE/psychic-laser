@@ -7,8 +7,9 @@ const setupCamera = async (
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: 640,
-        height: 480,
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        frameRate: { ideal: 30 },
       },
     });
 
@@ -16,9 +17,10 @@ const setupCamera = async (
 
     return new Promise((resolve) => {
       video.onloadedmetadata = () => {
-        ((canvas.width = video.videoWidth),
-          (canvas.height = video.videoHeight),
-          resolve(video));
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        video.play();
+        resolve(video);
       };
     });
   } catch (error) {
