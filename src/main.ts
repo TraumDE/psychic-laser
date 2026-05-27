@@ -10,6 +10,22 @@ import {
   type GestureRecognizerResult,
 } from "@mediapipe/tasks-vision";
 
+const TIPS_IDS = {
+  THUMP_TIP: 4,
+  INDEX_FINGER_TIP: 8,
+  MIDDLE_FINGER_TIP: 12,
+  RING_FINGER_TIP: 16,
+  PINKY_TIP: 20,
+} as const;
+
+const FINGER_NAMES = {
+  4: "Thump",
+  8: "Index",
+  12: "Middle",
+  16: "Ring",
+  20: "Pinky",
+};
+
 const video = document.getElementById("video") as HTMLVideoElement | null;
 const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
 
@@ -27,7 +43,7 @@ let lastVideoTime = -1;
 let lastDetectionTime = 0;
 let lastResults: GestureRecognizerResult | null = null;
 
-const DETECTION_INTERVAL = 50;
+const DETECTION_INTERVAL = 1;
 
 const drawFrame = () => {
   ctx.save();
@@ -77,10 +93,20 @@ const drawFrame = () => {
       const displayText = `${handedness}: ${gestureName} (${gestureScore})`;
 
       const textX = landmarks[0].x * canvas.width;
-      const textY = landmarks[0].y * canvas.height - 30;
+      const textY = landmarks[0].y * canvas.height + 30;
 
       ctx.strokeText(displayText, textX, textY);
-      ctx.fillText(displayText || "", textX, textY);
+      ctx.fillText(displayText, textX, textY);
+
+      for (const [_, value] of Object.entries(TIPS_IDS)) {
+        const tip = landmarks[value];
+
+        const tipTextX = tip.x * canvas.width;
+        const tipTextY = tip.y * canvas.height - 10;
+
+        ctx.strokeText(FINGER_NAMES[value], tipTextX, tipTextY);
+        ctx.fillText(FINGER_NAMES[value], tipTextX, tipTextY);
+      }
     });
   }
 
