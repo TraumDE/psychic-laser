@@ -59,6 +59,10 @@ const drawFrame = () => {
         lastResults?.handedness[i][0].displayName ||
         lastResults?.handedness[i][0].categoryName;
 
+      const gesture = lastResults?.gestures[i][0];
+      const gestureName = gesture?.categoryName || "None";
+      const gestureScore = gesture?.score ? Math.round(gesture.score * 100) : 0;
+
       drawingUtils?.drawConnectors(
         landmarks,
         GestureRecognizer.HAND_CONNECTIONS,
@@ -70,11 +74,13 @@ const drawFrame = () => {
         radius: 5,
       });
 
+      const displayText = `${handedness}: ${gestureName} (${gestureScore})`;
+
       const textX = landmarks[0].x * canvas.width;
       const textY = landmarks[0].y * canvas.height - 30;
 
-      ctx.strokeText(handedness || "", textX, textY);
-      ctx.fillText(handedness || "", textX, textY);
+      ctx.strokeText(displayText, textX, textY);
+      ctx.fillText(displayText || "", textX, textY);
     });
   }
 
