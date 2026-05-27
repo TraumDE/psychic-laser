@@ -8,7 +8,9 @@ import {
   DrawingUtils,
   GestureRecognizer,
   type GestureRecognizerResult,
+  type Landmark,
 } from "@mediapipe/tasks-vision";
+import getDistance from "./utils/getDistance";
 
 const TIPS_IDS = {
   THUMP_TIP: 4,
@@ -49,6 +51,10 @@ const drawFrame = () => {
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 4;
 
   const now = performance.now();
 
@@ -65,10 +71,41 @@ const drawFrame = () => {
   }
 
   if (lastResults?.landmarks?.length) {
-    ctx.font = "20px Arial";
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 4;
+    let leftHandLandmarks: Landmark[] | null = null;
+    let rightHandLandmarks: Landmark[] | null = null;
+
+    for (let i = 0; i < lastResults.landmarks.length; i++) {
+      const handType =
+        lastResults.handedness[i][0].displayName ||
+        lastResults.handedness[i][0].categoryName;
+
+      if (handType === "Left") {
+        leftHandLandmarks = lastResults.landmarks[i];
+      } else if (handType === "Right") {
+        rightHandLandmarks = lastResults.landmarks[i];
+      }
+    }
+
+    if (leftHandLandmarks && rightHandLandmarks) {
+      let score = 0;
+
+      for (const [_, value] of Object.entries(TIPS_IDS)) {
+        const leftTip = leftHandLandmarks[value];
+        const rightTip = rightHandLandmarks[value];
+
+        const distanceBetweenTips = getDistance(leftTip, rightTip);
+
+        if (distanceBetweenTips < 0.05) score++;
+      }
+
+      if (score === 5) {
+        const text = "Кислинка";
+        const textWidth = ctx.measureText(text).width;
+
+        ctx.strokeText(text, (canvas.width - textWidth) / 2, 50);
+        ctx.fillText(text, (canvas.width - textWidth) / 2, 50);
+      }
+    }
 
     lastResults.landmarks.forEach((landmarks, i) => {
       const handedness =
