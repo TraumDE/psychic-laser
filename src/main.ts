@@ -29,6 +29,8 @@ const FINGER_NAMES = {
   20: "Pinky",
 };
 
+const DEBUG = false;
+
 const video = document.getElementById("video") as HTMLVideoElement | null;
 const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
 
@@ -54,6 +56,7 @@ const drawFrame = () => {
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
   ctx.font = "20px Arial";
   ctx.fillStyle = "#ffffff";
   ctx.strokeStyle = "#000000";
@@ -98,50 +101,87 @@ const drawFrame = () => {
 
         const distanceBetweenTips = getDistance(leftTip, rightTip);
 
-        if (distanceBetweenTips < 0.05) score++;
+        if (distanceBetweenTips < 0.1) score++;
       }
 
       if (score === 5) activated.set(!activated.get());
+
+      console.log(activated.get());
     }
 
-    lastResults.landmarks.forEach((landmarks, i) => {
-      const handedness =
-        lastResults?.handedness[i][0].displayName ||
-        lastResults?.handedness[i][0].categoryName;
+    if (leftHandLandmarks && rightHandLandmarks && activated.get()) {
+      const leftTipsPixels = Object.entries(TIPS_IDS).map(([_, value]) => ({
+        x: leftHandLandmarks[value].x * canvas.width,
+        y: leftHandLandmarks[value].y * canvas.height,
+      }));
 
-      const gesture = lastResults?.gestures[i][0];
-      const gestureName = gesture?.categoryName || "None";
-      const gestureScore = gesture?.score ? Math.round(gesture.score * 100) : 0;
+      const rightTipsPixels = Object.entries(TIPS_IDS).map(([_, value]) => ({
+        x: rightHandLandmarks[value].x * canvas.width,
+        y: rightHandLandmarks[value].y * canvas.height,
+      }));
 
-      drawingUtils?.drawConnectors(
-        landmarks,
-        GestureRecognizer.HAND_CONNECTIONS,
-        { color: "#00ff88", lineWidth: 4 },
-      );
+      ctx.save();
 
-      drawingUtils?.drawLandmarks(landmarks, {
-        color: "#ff0088",
-        radius: 5,
-      });
+      ctx.fillStyle = "rgba(0, 255, 85, 0.2)";
+      ctx.strokeStyle = "#00ff55";
+      ctx.lineWidth = 3;
 
-      const displayText = `${handedness}: ${gestureName} (${gestureScore})`;
+      for (let i = 0; i < leftTipsPixels.length - 1; i++) {
+        ctx.beginPath();
 
-      const textX = landmarks[0].x * canvas.width;
-      const textY = landmarks[0].y * canvas.height + 30;
+        ctx.moveTo(leftTipsPixels[i].x, leftTipsPixels[i].y);
+        ctx.lineTo(rightTipsPixels[i].x, rightTipsPixels[i].y);
+        ctx.lineTo(rightTipsPixels[i + 1].x, rightTipsPixels[i + 1].y);
+        ctx.lineTo(leftTipsPixels[i + 1].x, leftTipsPixels[i + 1].y);
 
-      ctx.strokeText(displayText, textX, textY);
-      ctx.fillText(displayText, textX, textY);
-
-      for (const [_, value] of Object.entries(TIPS_IDS)) {
-        const tip = landmarks[value];
-
-        const tipTextX = tip.x * canvas.width;
-        const tipTextY = tip.y * canvas.height - 10;
-
-        ctx.strokeText(FINGER_NAMES[value], tipTextX, tipTextY);
-        ctx.fillText(FINGER_NAMES[value], tipTextX, tipTextY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
       }
-    });
+    }
+
+    if (DEBUG) {
+      lastResults.landmarks.forEach((landmarks, i) => {
+        const handedness =
+          lastResults?.handedness[i][0].displayName ||
+          lastResults?.handedness[i][0].categoryName;
+
+        const gesture = lastResults?.gestures[i][0];
+        const gestureName = gesture?.categoryName || "None";
+        const gestureScore = gesture?.score
+          ? Math.round(gesture.score * 100)
+          : 0;
+
+        drawingUtils?.drawConnectors(
+          landmarks,
+          GestureRecognizer.HAND_CONNECTIONS,
+          { color: "#00ff88", lineWidth: 4 },
+        );
+
+        drawingUtils?.drawLandmarks(landmarks, {
+          color: "#ff0088",
+          radius: 5,
+        });
+
+        const displayText = `${handedness}: ${gestureName} (${gestureScore})`;
+
+        const textX = landmarks[0].x * canvas.width;
+        const textY = landmarks[0].y * canvas.height + 30;
+
+        ctx.strokeText(displayText, textX, textY);
+        ctx.fillText(displayText, textX, textY);
+
+        for (const [_, value] of Object.entries(TIPS_IDS)) {
+          const tip = landmarks[value];
+
+          const tipTextX = tip.x * canvas.width;
+          const tipTextY = tip.y * canvas.height - 10;
+
+          ctx.strokeText(FINGER_NAMES[value], tipTextX, tipTextY);
+          ctx.fillText(FINGER_NAMES[value], tipTextX, tipTextY);
+        }
+      });
+    }
   }
 
   ctx.restore();
