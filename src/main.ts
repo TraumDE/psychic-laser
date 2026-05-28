@@ -11,6 +11,7 @@ import {
   type Landmark,
 } from "@mediapipe/tasks-vision";
 import getDistance from "./utils/getDistance";
+import createThrottleValue from "./utils/createThrottleValue";
 
 const TIPS_IDS = {
   THUMP_TIP: 4,
@@ -44,6 +45,8 @@ let gestureRecognizer: GestureRecognizer | null = null,
 let lastVideoTime = -1;
 let lastDetectionTime = 0;
 let lastResults: GestureRecognizerResult | null = null;
+
+let activated = createThrottleValue(false, 1000);
 
 const DETECTION_INTERVAL = 1;
 
@@ -98,13 +101,7 @@ const drawFrame = () => {
         if (distanceBetweenTips < 0.05) score++;
       }
 
-      if (score === 5) {
-        const text = "Кислинка";
-        const textWidth = ctx.measureText(text).width;
-
-        ctx.strokeText(text, (canvas.width - textWidth) / 2, 50);
-        ctx.fillText(text, (canvas.width - textWidth) / 2, 50);
-      }
+      if (score === 5) activated.set(!activated.get());
     }
 
     lastResults.landmarks.forEach((landmarks, i) => {
