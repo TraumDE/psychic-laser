@@ -4,7 +4,7 @@ import {
   DrawingUtils,
 } from "@mediapipe/tasks-vision";
 
-const delegateValue = localStorage.getItem("delegate");
+const delegateValue = localStorage.getItem("delegate") || "GPU";
 const delegateButton = document.getElementById("delegate") as HTMLButtonElement;
 const additionalInfoSpan = document.getElementById(
   "additional",
