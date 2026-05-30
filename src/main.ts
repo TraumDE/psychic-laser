@@ -208,17 +208,6 @@ const drawFrame = () => {
         ctx.shadowBlur = 3;
         ctx.restore();
       }
-      // ctx.beginPath();
-
-      // ctx.moveTo(leftTipsPixels[0].x, leftTipsPixels[0].y);
-      // ctx.lineTo(rightTipsPixels[0].x, rightTipsPixels[0].y);
-      // ctx.lineTo(rightTipsPixels[4].x, rightTipsPixels[4].y);
-      // ctx.lineTo(leftTipsPixels[4].x, leftTipsPixels[4].y);
-
-      // ctx.closePath();
-      // ctx.stroke();
-
-      // ctx.restore();
     }
 
     if (debug) {
