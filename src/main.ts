@@ -27,14 +27,21 @@ const FINGER_NAMES = {
   12: "Middle",
   16: "Ring",
   20: "Pinky",
+} as const;
+
+let debug = false;
+
+const debugButton = document.getElementById("debug") as HTMLButtonElement;
+
+const toggleDebug = () => {
+  debug = !debug;
+  debugButton.textContent = `Debug: ${debug ? "On" : "Off"}`;
 };
 
-const DEBUG = false;
+debugButton.addEventListener("click", toggleDebug);
 
-const video = document.getElementById("video") as HTMLVideoElement | null;
-const canvas = document.getElementById("canvas") as HTMLCanvasElement | null;
-if (!video) throw new Error(ERRORS.VIDEO_NOT_FOUND);
-if (!canvas) throw new Error(ERRORS.CANVAS_NOT_FOUND);
+const video = document.getElementById("video") as HTMLVideoElement;
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 
 const ctx = canvas.getContext("2d");
 if (!ctx) throw new Error(ERRORS.CONTEXT_NOT_FOUND);
@@ -54,7 +61,12 @@ let lastVideoTime = -1;
 let lastDetectionTime = 0;
 let lastResults: GestureRecognizerResult | null = null;
 
-let activated = createThrottleValue(false, 1000);
+const effectActivatedSpan = document.getElementById(
+  "effect",
+) as HTMLSpanElement;
+let activated = createThrottleValue(false, 1000, () => {
+  effectActivatedSpan.textContent = `Effect: ${activated.get()}`;
+});
 
 const DETECTION_INTERVAL = 1;
 
@@ -209,7 +221,7 @@ const drawFrame = () => {
       // ctx.restore();
     }
 
-    if (DEBUG) {
+    if (debug) {
       lastResults.landmarks.forEach((landmarks, i) => {
         const handedness =
           lastResults?.handedness[i][0].displayName ||

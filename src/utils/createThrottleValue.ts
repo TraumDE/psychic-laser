@@ -1,4 +1,8 @@
-const createThrottleValue = <T>(initial: T, ms = 500) => {
+const createThrottleValue = <T>(
+  initial: T,
+  ms = 500,
+  callback: CallableFunction = () => {},
+) => {
   let value = initial;
   let last = Date.now();
 
@@ -8,6 +12,7 @@ const createThrottleValue = <T>(initial: T, ms = 500) => {
       if (Date.now() - last >= ms) {
         value = next;
         last = Date.now();
+        callback();
         return true;
       }
       return false;
